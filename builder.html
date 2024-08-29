@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automation Framework Boilerplate Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prismjs/1.24.1/prism.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prismjs/1.24.1/themes/prism.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Automation Framework Boilerplate Generator</h1>
+    <button onclick="generateBoilerplate('selenium')">Selenium</button>
+    <button onclick="generateBoilerplate('cypress')">Cypress</button>
+    <button onclick="generateBoilerplate('playwright')">Playwright</button>
+    <h2>Generated Boilerplate:</h2>
+    <pre><code id="boilerplate" class="language-javascript"></code></pre>
+
+    <script>
+        function generateBoilerplate(framework) {
+            let boilerplate = '';
+            switch(framework) {
+                case 'selenium':
+                    boilerplate = `
+// Selenium Boilerplate with Page Object Model
+
+const { Builder, By, until } = require('selenium-webdriver');
+const assert = require('assert');
+
+class BasePage {
+    constructor(driver) {
+        this.driver = driver;
+    }
+
+    async navigateTo(url) {
+        await this.driver.get(url);
+    }
+
+    async findElement(locator) {
+        return await this.driver.findElement(locator);
+    }
+
+    async click(locator) {
+        const element = await this.findElement(locator);
+        await element.click();
+    }
+
+    async sendKeys(locator, text) {
+        const element = await this.findElement(locator);
+        await element.sendKeys(text);
+    }
+}
+
+class LoginPage extends BasePage {
+    constructor(driver) {
+        super(driver);
+        this.usernameInput = By.id('username');
+        this.passwordInput = By.id('password');
+        this.loginButton = By.id('login-button');
+    }
+
+    async login(username, password) {
+        await this.sendKeys(this.usernameInput, username);
+        await this.sendKeys(this.passwordInput, password);
+        await this.click(this.loginButton);
+    }
+}
+
+describe('Login Test', function() {
+    let driver;
+    let loginPage;
+
+    before(async function() {
+        driver = await new Builder().forBrowser('chrome').build();
+        loginPage = new LoginPage(driver);
+    });
+
+    it('should login successfully', async function() {
+        await loginPage.navigateTo('https://example.com/login');
+        await loginPage.login('testuser', 'password123');
+        // Add assertions here
+    });
+
+    after(async function() {
+        await driver.quit();
+    });
+});
+
+// Docker setup
+// Dockerfile
+/*
+FROM node:14
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+CMD ["npm", "test"]
+*/
+
+// docker-compose.yml
+/*
+version: '3'
+services:
+  selenium-hub:
+    image: selenium/hub:3.141.59-20210929
+    container_name: selenium-hub
+    ports:
+      - "4444:4444"
+
+  chrome:
+    image: selenium/node-chrome:3.141.59-20210929
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+
+  test:
+    build: .
+    depends_on:
+      - chrome
+    environment:
+      - SELENIUM_HOST=selenium-hub
+      - SELENIUM_PORT=4444
+*/
+
+// Kubernetes setup (basic example)
+/*
+apiVersion: v1
+kind: Pod
+metadata:
+  name: selenium-test
+spec:
+  containers:
+  - name: test
+    image: your-test-image:tag
+    env:
+    - name: SELENIUM_HOST
+      value: "selenium-hub"
+    - name: SELENIUM_PORT
+      value: "4444"
+  - name: selenium-hub
+    image: selenium/hub:3.141.59-20210929
+  - name: chrome
+    image: selenium/node-chrome:3.141.59-20210929
+    env:
+    - name: HUB_HOST
+      value: "localhost"
+    - name: HUB_PORT
+      value: "4444"
+*/
+
+// For better reporting, you can use tools like Allure or Extent Reports
+// Example with Allure:
+// npm install allure-commandline allure-js-commons
+
+const allure = require('allure-js-commons');
+
+// In your test:
+allure.description('This is a test description');
+allure.attachment('Screenshot', Buffer.from('...'), 'image/png');
+                    `;
+                    break;
+                case 'cypress':
+                    boilerplate = `
+// Cypress Boilerplate with Page Object Model
+
+// cypress/support/pages/LoginPage.js
+class LoginPage {
+    visit() {
+        cy.visit('/login');
+    }
+
+    fillUsername(value) {
+        cy.get('#username').type(value);
+    }
+
+    fillPassword(value) {
+        cy.get('#password').type(value);
+    }
+
+    submit() {
+        cy.get('#login-button').click();
+    }
+}
+
+export default LoginPage;
+
+// cypress/integration/login.spec.js
+import LoginPage from '../support/pages/LoginPage';
+
+describe('Login', () => {
+    const loginPage = new LoginPage();
+
+    beforeEach(() => {
+        loginPage.visit();
+    });
+
+    it('should login successfully', () => {
+        loginPage.fillUsername('testuser');
+        loginPage.fillPassword('password123');
+        loginPage.submit();
+        
+        // Add assertions here
+        cy.url().should('include', '/dashboard');
+    });
+});
+
+// cypress.json
+{
+    "baseUrl": "https://example.com",
+    "video": true,
+    "screenshotOnRunFailure": true,
+    "reporter": "cypress-mochawesome-reporter",
+    "reporterOptions": {
+        "reportDir": "cypress/reports",
+        "charts": true,
+        "reportPageTitle": "My Test Report"
+    }
+}
+
+// Docker setup
+// Dockerfile
+/*
+FROM cypress/included:8.3.0
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+CMD ["npm", "run", "cy:run"]
+*/
+
+// docker-compose.yml
+/*
+version: '3'
+services:
+  cypress:
+    build: .
+    environment:
+      - CYPRESS_BASE_URL=http://your-app-url
+*/
+
+// Kubernetes setup (basic example)
+/*
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cypress-tests
+spec:
+  template:
+    spec:
+      containers:
+      - name: cypress
+        image: your-cypress-image:tag
+        env:
+        - name: CYPRESS_BASE_URL
+          value: "http://your-app-url"
+      restartPolicy: Never
+  backoffLimit: 4
+*/
+
+// For better reporting, Cypress has built-in support for various reporters
+// You can use Mochawesome for HTML reports:
+// npm install --save-dev cypress-mochawesome-reporter
+// Then update cypress.json as shown above
+                    `;
+                    break;
+                case 'playwright':
+                    boilerplate = `
+// Playwright Boilerplate with Page Object Model
+
+const { chromium } = require('playwright');
+const { test, expect } = require('@playwright/test');
+
+class BasePage {
+    constructor(page) {
+        this.page = page;
+    }
+
+    async navigateTo(url) {
+        await this.page.goto(url);
+    }
+}
+
+class LoginPage extends BasePage {
+    constructor(page) {
+        super(page);
+    }
+
+    async login(username, password) {
+        await this.page.fill('#username', username);
+        await this.page.fill('#password', password);
+        await this.page.click('#login-button');
+    }
+}
+
+test.describe('Login', () => {
+    let browser;
+    let page;
+    let loginPage;
+
+    test.beforeAll(async () => {
+        browser = await chromium.launch();
+    });
+
+    test.beforeEach(async () => {
+        page = await browser.newPage();
+        loginPage = new LoginPage(page);
+        await loginPage.navigateTo('https://example.com/login');
+    });
+
+    test('should login successfully', async () => {
+        await loginPage.login('testuser', 'password123');
+        await expect(page).toHaveURL(/.*dashboard/);
+    });
+
+    test.afterEach(async () => {
+        await page.close();
+    });
+
+    test.afterAll(async () => {
+        await browser.close();
+    });
+});
+
+// playwright.config.js
+module.exports = {
+    reporter: [
+        ['html'],
+        ['allure-playwright']
+    ],
+    use: {
+        headless: true,
+        viewport: { width: 1280, height: 720 },
+        video: 'on-first-retry',
+        screenshot: 'only-on-failure',
+    },
+};
+
+// Docker setup
+// Dockerfile
+/*
+FROM mcr.microsoft.com/playwright:v1.12.3-focal
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+CMD ["npm", "test"]
+*/
+
+// docker-compose.yml
+/*
+version: '3'
+services:
+  playwright:
+    build: .
+    environment:
+      - BASE_URL=http://your-app-url
+*/
+
+// Kubernetes setup (basic example)
+/*
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: playwright-tests
+spec:
+  template:
+    spec:
+      containers:
+      - name: playwright
+        image: your-playwright-image:tag
+        env:
+        - name: BASE_URL
+          value: "http://your-app-url"
+      restartPolicy: Never
+  backoffLimit: 4
+*/
+
+// For better reporting, you can use Allure with Playwright
+// npm install -D @playwright/test allure-playwright
+// Then update playwright.config.js as shown above
+                    `;
+                    break;
+            }
+            document.getElementById('boilerplate').textContent = boilerplate;
+            Prism.highlightAll();
+        }
+    </script>
+</body>
+</html>

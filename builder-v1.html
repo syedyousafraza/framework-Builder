@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automation Framework Boilerplate Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prismjs/1.24.1/prism.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prismjs/1.24.1/themes/prism.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .directory-structure {
+            font-family: monospace;
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+        .package-json-explanation {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Automation Framework Boilerplate Generator</h1>
+    <button onclick="generateBoilerplate('selenium')">Selenium</button>
+    <button onclick="generateBoilerplate('cypress')">Cypress</button>
+    <button onclick="generateBoilerplate('playwright')">Playwright</button>
+    <h2>Generated Boilerplate:</h2>
+    <pre><code id="boilerplate" class="language-javascript"></code></pre>
+    <h2>Directory Structure:</h2>
+    <div id="directory-structure" class="directory-structure"></div>
+    <h2>How to Start:</h2>
+    <div id="how-to-start" class="directory-structure"></div>
+    <h2>package.json Explanation:</h2>
+    <div id="package-json-explanation" class="package-json-explanation"></div>
+
+    <script>
+        function generateBoilerplate(framework) {
+            let boilerplate = '';
+            let directoryStructure = '';
+            let howToStart = '';
+            let packageJson = '';
+            let packageJsonExplanation = '';
+
+            switch(framework) {
+                case 'selenium':
+                    boilerplate = `
+// Selenium Boilerplate with Page Object Model and Custom Commands
+
+const { Builder, By } = require('selenium-webdriver');
+const assert = require('assert');
+const { logError } = require('./utils/logger');
+
+class BasePage {
+    constructor(driver) {
+        this.driver = driver;
+    }
+
+    async navigateTo(url) {
+        await this.driver.get(url);
+    }
+
+    async findElement(locator) {
+        try {
+            return await this.driver.findElement(locator);
+        } catch (error) {
+            logError('Element not found:', locator);
+            throw error;
+        }
+    }
+
+    async click(locator) {
+        const element = await this.findElement(locator);
+        await element.click();
+    }
+
+    async sendKeys(locator, text) {
+        const element = await this.findElement(locator);
+        await element.sendKeys(text);
+    }
+}
+
+class LoginPage extends BasePage {
+    constructor(driver) {
+        super(driver);
+        this.usernameInput = By.id('username');
+        this.passwordInput = By.id('password');
+        this.loginButton = By.id('login-button');
+    }
+
+    async login(username, password) {
+        await this.sendKeys(this.usernameInput, username);
+        await this.sendKeys(this.passwordInput, password);
+        await this.click(this.loginButton);
+    }
+}
+
+describe('Login Test', function() {
+    let driver;
+    let loginPage;
+
+    before(async function() {
+        driver = await new Builder().forBrowser('chrome').build();
+        loginPage = new LoginPage(driver);
+    });
+
+    it('should login successfully', async function() {
+        await loginPage.navigateTo('https://example.com/login');
+        await loginPage.login('testuser', 'password123');
+        // Add assertions here
+    });
+
+    after(async function() {
+        await driver.quit();
+    });
+}
+
+// Reporting setup
+// Install Allure: npm install allure-commandline allure-js-commons
+const allure = require('allure-js-commons');
+
+// In your test:
+allure.description('This is a test description');
+allure.attachment('Screenshot', Buffer.from('...'), 'image/png');
+                    `;
+                    directoryStructure = `
+cypress/
+    integration/
+        login.spec.js
+    support/
+        pages/
+            BasePage.js
+            LoginPage.js
+    cypress.config.js
+    Dockerfile
+    docker-compose.yml
+    .gitignore
+                    `;
+                    packageJson = `
+{
+    "name": "selenium-boilerplate",
+    "version": "1.0.0",
+    "description": "Selenium boilerplate with Page Object Model and custom commands",
+    "main": "index.js",
+    "scripts": {
+        "test": "mocha"
+    },
+    "dependencies": {
+        "selenium-webdriver": "^4.0.0",
+        "mocha": "^9.0.0",
+        "allure-commandline": "^2.13.8",
+        "allure-js-commons": "^2.13.8"
+    },
+    "devDependencies": {},
+    "author": "",
+    "license": "ISC"
+}
+                    `;
+                    packageJsonExplanation = `
+**package.json Explanation for Selenium:**
+
+- \`"name"\`: The name of the project.
+- \`"version"\`: The version of the project.
+- \`"description"\`: A brief description of the project.
+- \`"main"\`: The entry point of the project.
+- \`"scripts"\`: Defines a set of script commands. For example, \`"test": "mocha"\` runs the Mocha test framework.
+- \`"dependencies"\`: Lists the packages required for the project. 
+    - \`"selenium-webdriver"\`: Selenium WebDriver for browser automation.
+    - \`"mocha"\`: Test framework for running tests.
+    - \`"allure-commandline"\`: Command-line tool for generating Allure reports.
+    - \`"allure-js-commons"\`: Common library for Allure reporting.
+- \`"devDependencies"\`: Lists the packages required for development purposes. It is empty in this case.
+- \`"author"\`: The author of the project.
+- \`"license"\`: The license under which the project is distributed.
+                    `;
+                    howToStart = `
+1. **Install Dependencies:**
+   - Run \`npm install\` to install required dependencies.
+
+2. **Run Tests:**
+   - Use \`npx mocha\` to execute the tests.
+
+3. **Run Docker Containers:**
+   - Build the Docker image: \`docker build -t selenium-test .\`
+   - Start the containers: \`docker-compose up\`
+
+4. **Generate Allure Reports:**
+   - After running tests, generate reports with: \`allure generate allure-results --clean -o allure-report\`
+   - Open the report: \`allure open allure-report\`
+                    `;
+                    break;
+                case 'cypress':
+                    boilerplate = `
+// Cypress Boilerplate with Page Object Model, Custom Commands, and Reporting
+
+// cypress/support/pages/BasePage.js
+class BasePage {
+    visit(url) {
+        cy.visit(url);
+    }
+}
+
+// cypress/support/pages/LoginPage.js
+class LoginPage extends BasePage {
+    visit() {
+        super.visit('/login');
+    }
+
+    fillUsername(value) {
+        cy.get('#username').type(value);
+    }
+
+    fillPassword(value) {
+        cy.get('#password').type(value);
+    }
+
+    submit() {
+        cy.get('#login-button').click();
+    }
+}
+
+export default LoginPage;
+
+// cypress/support/commands.js
+Cypress.Commands.add('login', (username, password) => {
+    cy.get('#username').type(username);
+    cy.get('#password').type(password);
+    cy.get('#login-button').click();
+});
+
+// cypress/integration/login.spec.js
+import LoginPage from '../support/pages/LoginPage';
+
+describe('Login', () => {
+    const loginPage = new LoginPage();
+
+    beforeEach(() => {
+        loginPage.visit();
+    });
+
+    it('should login successfully', () => {
+        cy.login('testuser', 'password123');
+        
+        // Add assertions here
+        cy.url().should('include', '/dashboard');
+    });
+});
+
+// cypress.config.js
+const { defineConfig } = require('cypress');
+
+module.exports = defineConfig({
+    reporter: 'mochawesome',
+    reporterOptions: {
+        reportDir: 'cypress/reports',
+        overwrite: false,
+        html: true,
+        json: true
+    },
+    e2e: {
+        baseUrl: 'https://example.com',
+        setupNodeEvents(on, config) {
+            // implement node event listeners here
+        }
+    }
+});
+
+// Dockerfile
+/*
+FROM cypress/included:12.0.0
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+CMD ["npx", "cypress", "run"]
+*/
+
+// docker-compose.yml
+/*
+version: '3'
+services:
+  cypress:
+    build: .
+    environment:
+      - CYPRESS_baseUrl=http://your-app-url
+    volumes:
+      - .:/app
+    command: ["npx", "cypress", "run"]
+*/
+
+// How to Start
+// 1. **Install Dependencies:**
+//    - Run \`npm install\` to install required dependencies.
+// 2. **Run Tests:**
+//    - Use \`npx cypress open\` to open the Cypress Test Runner.
+//    - Use \`npx cypress run\` to execute tests in headless mode.
+// 3. **Run Docker Containers:**
+//    - Build the Docker image: \`docker build -t cypress-test .\`
+//    - Start the container: \`docker-compose up\`
+// 4. **Generate Reports:**
+//    - Reports are automatically generated in the \`cypress/reports\` directory.
+                    `;
+                    directoryStructure = `
+cypress/
+    integration/
+        login.spec.js
+    support/
+        pages/
+            BasePage.js
+            LoginPage.js
+        commands.js
+    cypress.config.js
+    Dockerfile
+    docker-compose.yml
+    .gitignore
+    cypress/reports/
+                    `;
+                    packageJson = `
+{
+    "name": "cypress-boilerplate",
+    "version": "1.0.0",
+    "description": "Cypress boilerplate with Page Object Model and custom commands",
+    "main": "index.js",
+    "scripts": {
+        "test": "cypress run",
+        "cy:run": "cypress run",
+        "cy:open": "cypress open"
+    },
+    "dependencies": {
+        "cypress": "^12.0.0",
+        "mochawesome": "^7.0.0"
+    },
+    "devDependencies": {},
+    "author": "",
+    "license": "ISC"
+}
+                    `;
+                    packageJsonExplanation = `
+**package.json Explanation for Cypress:**
+
+- \`"name"\`: The name of the project.
+- \`"version"\`: The version of the project.
+- \`"description"\`: A brief description of the project.
+- \`"main"\`: The entry point of the project.
+- \`"scripts"\`: Defines a set of script commands.
+    - \`"test": "cypress run"\`: Runs the Cypress tests.
+    - \`"cy:run": "cypress run"\`: Alias for running Cypress tests.
+    - \`"cy:open": "cypress open"\`: Opens the Cypress Test Runner.
+- \`"dependencies"\`: Lists the packages required for the project.
+    - \`"cypress"\`: Cypress for end-to-end testing.
+    - \`"mochawesome"\`: Reporting tool for generating HTML and JSON reports.
+- \`"devDependencies"\`: Lists the packages required for development purposes. It is empty in this case.
+- \`"author"\`: The author of the project.
+- \`"license"\`: The license under which the project is distributed.
+                    `;
+                    howToStart = `
+1. **Install Dependencies:**
+   - Run \`npm install\` to install required dependencies.
+
+2. **Run Tests:**
+   - Use \`npx cypress open\` to open the Cypress Test Runner.
+   - Use \`npx cypress run\` to execute tests in headless mode.
+
+3. **Run Docker Containers:**
+   - Build the Docker image: \`docker build -t cypress-test .\`
+   - Start the container: \`docker-compose up\`
+
+4. **Generate Reports:**
+   - Reports are automatically generated in the \`cypress/reports\` directory.
+                    `;
+                    break;
+                case 'playwright':
+                    boilerplate = `
+// Playwright Boilerplate with Page Object Model, Custom Commands, and Reporting
+
+// playwright/pages/BasePage.js
+class BasePage {
+    constructor(page) {
+        this.page = page;
+    }
+
+    async visit(url) {
+        await this.page.goto(url);
+    }
+}
+
+// playwright/pages/LoginPage.js
+class LoginPage extends BasePage {
+    constructor(page) {
+        super(page);
+        this.usernameInput = 'input#username';
+        this.passwordInput = 'input#password';
+        this.loginButton = 'button#login-button';
+    }
+
+    async login(username, password) {
+        await this.page.fill(this.usernameInput, username);
+        await this.page.fill(this.passwordInput, password);
+        await this.page.click(this.loginButton);
+    }
+}
+
+module.exports = LoginPage;
+
+// playwright.config.js
+const { defineConfig, devices } = require('@playwright/test');
+
+module.exports = defineConfig({
+    reporter: [['list'], ['html', { outputFolder: 'playwright-report' }]],
+    use: {
+        baseURL: 'https://example.com',
+        trace: 'on',
+        video: 'retain-on-failure',
+    },
+    projects: [
+        {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+        },
+        {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+        },
+        {
+            name: 'Google Chrome',
+            use: { ...devices['Desktop Chrome'] },
+        },
+    ],
+});
+
+// Dockerfile
+/*
+FROM mcr.microsoft.com/playwright:v1.30.0-focal
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+CMD ["npx", "playwright", "test"]
+*/
+
+// docker-compose.yml
+/*
+version: '3'
+services:
+  playwright:
+    build: .
+    environment:
+      - PLAYWRIGHT_BASE_URL=http://your-app-url
+*/
+
+// How to Start
+// 1. **Install Dependencies:**
+//    - Run \`npm install\` to install required dependencies.
+// 2. **Run Tests:**
+//    - Use \`npx playwright test\` to execute tests.
+// 3. **Run Docker Containers:**
+//    - Build the Docker image: \`docker build -t playwright-test .\`
+//    - Start the container: \`docker-compose up\`
+// 4. **Generate Reports:**
+//    - Reports are automatically generated in the \`playwright-report\` directory.
+                    `;
+                    directoryStructure = `
+playwright/
+    pages/
+        BasePage.js
+        LoginPage.js
+    playwright.config.js
+    Dockerfile
+    docker-compose.yml
+    .gitignore
+    playwright-report/
+                    `;
+                    packageJson = `
+{
+    "name": "playwright-boilerplate",
+    "version": "1.0.0",
+    "description": "Playwright boilerplate with Page Object Model and custom commands",
+    "main": "index.js",
+    "scripts": {
+        "test": "playwright test"
+    },
+    "dependencies": {
+        "@playwright/test": "^1.30.0"
+    },
+    "devDependencies": {},
+    "author": "",
+    "license": "ISC"
+}
+                    `;
+                    packageJsonExplanation = `
+**package.json Explanation for Playwright:**
+
+- \`"name"\`: The name of the project.
+- \`"version"\`: The version of the project.
+- \`"description"\`: A brief description of the project.
+- \`"main"\`: The entry point of the project.
+- \`"scripts"\`: Defines a set of script commands.
+    - \`"test": "playwright test"\`: Runs the Playwright tests.
+- \`"dependencies"\`: Lists the packages required for the project.
+    - \`"@playwright/test"\`: Playwright for end-to-end testing.
+- \`"devDependencies"\`: Lists the packages required for development purposes. It is empty in this case.
+- \`"author"\`: The author of the project.
+- \`"license"\`: The license under which the project is distributed.
+                    `;
+                    howToStart = `
+1. **Install Dependencies:**
+   - Run \`npm install\` to install required dependencies.
+
+2. **Run Tests:**
+   - Use \`npx playwright test\` to execute tests.
+
+3. **Run Docker Containers:**
+   - Build the Docker image: \`docker build -t playwright-test .\`
+   - Start the container: \`docker-compose up\`
+
+4. **Generate Reports:**
+   - Reports are automatically generated in the \`playwright-report\` directory.
+                    `;
+                    break;
+                default:
+                    boilerplate = 'Please select a framework.';
+                    directoryStructure = '';
+                    howToStart = '';
+                    packageJson = '';
+                    packageJsonExplanation = '';
+            }
+
+            document.getElementById('boilerplate').textContent = boilerplate;
+            document.getElementById('directory-structure').textContent = directoryStructure;
+            document.getElementById('how-to-start').textContent = howToStart;
+            document.getElementById('package-json-explanation').textContent = packageJsonExplanation;
+        }
+    </script>
+</body>
+</html>

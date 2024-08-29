@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automation Framework Boilerplate Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+        }
+        h1, h2, h3 {
+            color: #333;
+        }
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .directory-structure {
+            font-family: monospace;
+            white-space: pre;
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .code-block {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Automation Framework Boilerplate Generator</h1>
+
+    <div class="section" id="selenium">
+        <h2>Selenium</h2>
+        <h3>Directory Structure</h3>
+        <div class="directory-structure">
+            selenium/
+            ├── pages/
+            │   ├── BasePage.js
+            │   └── LoginPage.js
+            ├── test/
+            │   └── login.test.js
+            ├── package.json
+            ├── Dockerfile
+            ├── docker-compose.yml
+        </div>
+        <h3>Boilerplate Code</h3>
+        <div class="code-block">
+            <h4>BasePage.js</h4>
+            <pre><code>const { By, until } = require('selenium-webdriver');
+
+class BasePage {
+    constructor(driver) {
+        this.driver = driver;
+    }
+
+    async wait(selector, timeout = 30000) {
+        await this.driver.wait(until.elementLocated(By.css(selector)), timeout);
+    }
+
+    async click(selector) {
+        const element = await this.driver.findElement(By.css(selector));
+        await element.click();
+    }
+
+    async isVisible(selector) {
+        try {
+            const element = await this.driver.findElement(By.css(selector));
+            return await element.isDisplayed();
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async isNotVisible(selector) {
+        return !(await this.isVisible(selector));
+    }
+
+    async containsText(selector, text) {
+        const element = await this.driver.findElement(By.css(selector));
+        const elementText = await element.getText();
+        return elementText.includes(text);
+    }
+
+    async matches(selector, regex) {
+        const element = await this.driver.findElement(By.css(selector));
+        const elementText = await element.getText();
+        return regex.test(elementText);
+    }
+
+    async alert() {
+        const alert = await this.driver.switchTo().alert();
+        return alert.getText();
+    }
+
+    async success(message) {
+        return this.containsText('div.success', message);
+    }
+
+    async fail(message) {
+        return this.containsText('div.error', message);
+    }
+}
+
+module.exports = BasePage;</code></pre>
+
+            <h4>LoginPage.js</h4>
+            <pre><code>const BasePage = require('./BasePage');
+const { By } = require('selenium-webdriver');
+
+class LoginPage extends BasePage {
+    constructor(driver) {
+        super(driver);
+        this.usernameInput = 'input#username';
+        this.passwordInput = 'input#password';
+        this.loginButton = 'button#login-button';
+        this.errorMessage = 'div.error'; // Example selector for error messages
+    }
+
+    async login(username, password) {
+        await this.wait(this.usernameInput);
+        await this.driver.findElement(By.css(this.usernameInput)).sendKeys(username);
+        await this.driver.findElement(By.css(this.passwordInput)).sendKeys(password);
+        await this.click(this.loginButton);
+    }
+
+    async assertLoginError(message) {
+        await this.isVisible(this.errorMessage);
+        await this.containsText(this.errorMessage, message);
+    }
+}
+
+module.exports = LoginPage;</code></pre>
+
+            <h4>package.json</h4>
+            <pre><code>{
+    "name": "selenium-project",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "test": "mocha"
+    },
+    "dependencies": {
+        "selenium-webdriver": "^4.0.0",
+        "mocha": "^9.1.3",
+        "chai": "^4.3.4"
+    }
+}</code></pre>
+
+            <h4>Dockerfile</h4>
+            <pre><code>FROM node:14
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+CMD ["npm", "test"]</code></pre>
+
+            <h4>docker-compose.yml</h4>
+            <pre><code>version: '3'
+services:
+  selenium-hub:
+    image: selenium/hub:4.0.0-20211201
+    container_name: selenium-hub
+    ports:
+      - "4444:4444"
+
+  chrome:
+    image: selenium/node-chrome:4.0.0-20211201
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+
+  test:
+    build: .
+    depends_on:
+      - chrome
+    environment:
+      - SELENIUM_HOST=selenium-hub
+      - SELENIUM_PORT=4444
+</code></pre>
+        </div>
+        <h3>How to Start</h3>
+        <div class="code-block">
+            <pre><code>1. **Install Dependencies**:
+    npm install
+    This installs the necessary npm packages defined in package.json.
+
+2. **Run Tests**:
+    npm test
+    This runs the test cases using Mocha.
+
+3. **Run with Docker**:
+    - Build Docker image:
+      docker build -t selenium-project .
+    - Start services:
+      docker-compose up
+    This will start Selenium Hub, Chrome node, and the test container.
+
+4. **Run Tests in Docker**:
+    docker-compose run test
+    This executes the tests within the Docker container.
+</code></pre>
+        </div>
+    </div>
+
+    <div class="section" id="cypress">
+        <h2>Cypress</h2>
+        <h3>Directory Structure</h3>
+        <div class="directory-structure">
+            cypress/
+            ├── integration/
+            │   └── login.spec.js
+            ├── support/
+            │   ├── pages/
+            │   │   ├── BasePage.js
+            │   │   └── LoginPage.js
+            │   └── commands.js
+            ├── package.json
+            ├── Dockerfile
+            ├── docker-compose.yml
+        </div>
+        <h3>Boilerplate Code</h3>
+        <div class="code-block">
+            <h4>BasePage.js</h4>
+            <pre><code>class BasePage {
+    visit(url) {
+        cy.visit(url);
+    }
+
+    click(selector) {
+        cy.get(selector).click();
+    }
+
+    isVisible(selector) {
+        cy.get(selector).should('be.visible');
+    }
+
+    isNotVisible(selector) {
+        cy.get(selector).should('not.be.visible');
+    }
+
+    containsText(selector, text) {
+        cy.get(selector).should('contain.text', text);
+    }
+
+    matches(selector, regex) {
+        cy.get(selector).invoke('text').should('match', regex);
+    }
+
+    alert() {
+        // Cypress does not handle alerts directly, but you can stub alerts
+    }
+
+    success(message) {
+        cy.get('div.success').should('contain.text', message);
+    }
+
+    fail(message) {
+        cy.get('div.error').should('contain.text', message);
+    }
+}
+
+export default BasePage;</code></pre>
+
+            <h4>LoginPage.js</h4>
+            <pre><code>import BasePage from './BasePage';
+
+class LoginPage extends BasePage {
+    visit() {
+        super.visit('/login');
+    }
+
+    fillUsername(value) {
+        cy.get('#username').type(value);
+    }
+
+    fillPassword(value) {
+        cy.get('#password').type(value);
+    }
+
+    submit() {
+        cy.get('#login-button').click();
+    }
+
+    assertLoginError(message) {
+        super.isVisible('div.error');
+        super.containsText('div.error', message);
+    }
+}
+
+export default LoginPage;</code></pre>
+
+            <h4>package.json</h4>
+            <pre><code>{
+    "name": "cypress-project",
+    "version": "1.0.0",
+    "devDependencies": {
+        "cypress": "^10.0.0",
+        "cypress-mochawesome-reporter": "^2.0.0"
+    },
+    "scripts": {
+        "test": "cypress run"
+    }
+}</code></pre>
+
+            <h4>Dockerfile</h4>
+            <pre><code>FROM cypress/included:10.0.0
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+CMD ["npx", "cypress", "run"]</code></pre>
+
+            <h4>docker-compose.yml</h4>
+            <pre><code>version: '3'
+services:
+  cypress:
+    build: .
+    command: ["npx", "cypress", "run"]
+</code></pre>
+        </div>
+        <h3>How to Start</h3>
+        <div class="code-block">
+            <pre><code>1. **Install Dependencies**:
+    npm install
+    This installs the necessary npm packages defined in package.json.
+
+2. **Run Tests**:
+    npx cypress run
+    This runs the Cypress tests.
+
+3. **Run with Docker**:
+    - Build Docker image:
+      docker build -t cypress-project .
+    - Start Cypress service:
+      docker-compose up
+
+4. **Run Tests in Docker**:
+    docker-compose run cypress
+    This executes the tests within the Docker container.
+</code></pre>
+        </div>
+    </div>
+
+    <div class="section" id="playwright">
+        <h2>Playwright</h2>
+        <h3>Directory Structure</h3>
+        <div class="directory-structure">
+            playwright/
+            ├── pages/
+            │   ├── BasePage.js
+            │   └── LoginPage.js
+            ├── tests/
+            │   └── login.test.js
+            ├── package.json
+            ├── Dockerfile
+            ├── docker-compose.yml
+        </div>
+        <h3>Boilerplate Code</h3>
+        <div class="code-block">
+            <h4>BasePage.js</h4>
+            <pre><code>class BasePage {
+    constructor(page) {
+        this.page = page;
+    }
+
+    async wait(selector) {
+        await this.page.waitForSelector(selector);
+    }
+
+    async click(selector) {
+        await this.page.click(selector);
+    }
+
+    async isVisible(selector) {
+        return await this.page.isVisible(selector);
+    }
+
+    async isNotVisible(selector) {
+        return !(await this.isVisible(selector));
+    }
+
+    async containsText(selector, text) {
+        const elementText = await this.page.innerText(selector);
+        return elementText.includes(text);
+    }
+
+    async matches(selector, regex) {
+        const elementText = await this.page.innerText(selector);
+        return regex.test(elementText);
+    }
+
+    async alert() {
+        // Playwright does not handle alerts directly, but you can stub alerts
+    }
+
+    async success(message) {
+        return this.containsText('div.success', message);
+    }
+
+    async fail(message) {
+        return this.containsText('div.error', message);
+    }
+}
+
+module.exports = BasePage;</code></pre>
+
+            <h4>LoginPage.js</h4>
+            <pre><code>const BasePage = require('./BasePage');
+
+class LoginPage extends BasePage {
+    constructor(page) {
+        super(page);
+        this.usernameInput = 'input#username';
+        this.passwordInput = 'input#password';
+        this.loginButton = 'button#login-button';
+        this.errorMessage = 'div.error'; // Example selector for error messages
+    }
+
+    async login(username, password) {
+        await this.wait(this.usernameInput);
+        await this.page.fill(this.usernameInput, username);
+        await this.page.fill(this.passwordInput, password);
+        await this.click(this.loginButton);
+    }
+
+    async assertLoginError(message) {
+        await this.isVisible(this.errorMessage);
+        await this.containsText(this.errorMessage, message);
+    }
+}
+
+module.exports = LoginPage;</code></pre>
+
+            <h4>package.json</h4>
+            <pre><code>{
+    "name": "playwright-project",
+    "version": "1.0.0",
+    "devDependencies": {
+        "@playwright/test": "^1.24.0",
+        "playwright": "^1.24.0",
+        "mocha": "^10.0.0",
+        "chai": "^4.3.4"
+    },
+    "scripts": {
+        "test": "npx playwright test"
+    }
+}</code></pre>
+
+            <h4>Dockerfile</h4>
+            <pre><code>FROM mcr.microsoft.com/playwright:v1.24.0-focal
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+CMD ["npx", "playwright", "test"]</code></pre>
+
+            <h4>docker-compose.yml</h4>
+            <pre><code>version: '3'
+services:
+  playwright:
+    build: .
+    command: ["npx", "playwright", "test"]
+</code></pre>
+        </div>
+        <h3>How to Start</h3>
+        <div class="code-block">
+            <pre><code>1. **Install Dependencies**:
+    npm install
+    This installs the necessary npm packages defined in package.json.
+
+2. **Run Tests**:
+    npx playwright test
+    This runs the Playwright tests.
+
+3. **Run with Docker**:
+    - Build Docker image:
+      docker build -t playwright-project .
+    - Start Playwright service:
+      docker-compose up
+
+4. **Run Tests in Docker**:
+    docker-compose run playwright
+    This executes the tests within the Docker container.
+</code></pre>
+        </div>
+    </div>
+</body>
+</html>
